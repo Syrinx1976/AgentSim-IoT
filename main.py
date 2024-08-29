@@ -55,20 +55,25 @@ g.close()
 g = open('temp_armazenamento_media_energia.txt','w')
 g.close()
 
+
 # inicio de loop com processo de recebimento de requisicoes e
 rodada = 0
 while rodada < numero_rodadas:
 
-    # Instancias dos Dicionarios e Listas principais
+    # Configurando dicionarios e Listas
     Dic_sensing_ranges = {}
     Dic_reqs_dispositivos = {}
     Dic_falhas_por_dispositivos = {}
+    Dic_falhas_por_dispositivos_normalizado = {}
     Lista_conteudos = ['k1','k2','k3','k4','k5']
     Dispositivos_selecionados_por_conteudo = {'k1':None,'k2':None,'k3':None,'k4':None,'k5':None}
     Dic_dispositivo_visitado_por_MA = {}
     Dic_registro_energia_remanescente_dispositivos = {}
+    Dic_registro_energia_remanescente_dispositivos_normalizado = {}
+    Dic_numero_reqs_por_conteudo_por_no = {}
     Dic_tempo_ultima_atualizacao_por_conteudo_por_no = {}
     Dic_valores_coletados_por_conteudo_por_no = {}
+    Dic_numero_escolhas_nos_por_conteudo = {}
     contador_reqs_conteudos = {'k1':0,'k2':0,'k3':0,'k4':0,'k5':0}
     Dic_selecionado_primeiro = {}
     Dic_selecionado_segundo = {}
@@ -85,7 +90,8 @@ while rodada < numero_rodadas:
     Media_qtde_nos_fontes = []
 
     # Criação do grafo e coordenadas
-    dispositivos, Lista_pontos, G, Dic_registro_custos_originais = gerar_aoi_dispositivos_c_coordenadas_rev0.gera_aoi_dispositivos(plt, largura_top, comprimento_top, n, m, prob_falha_links, modo_debug)
+    dispositivos, Lista_pontos, G, Dic_registro_custos_originais = gerar_aoi_dispositivos_c_coordenadas_rev0.gera_aoi_dispositivos(plt, largura, comprimento, n, m, prob_falha_links)
+
 
     for i in dispositivos:
 
@@ -93,13 +99,20 @@ while rodada < numero_rodadas:
         Dic_reqs_dispositivos.update({i.nome:0})
         Dic_dispositivo_visitado_por_MA.update({i.nome:None})
         Dic_registro_energia_remanescente_dispositivos.update({i.nome:i.energia})
+        Dic_registro_energia_remanescente_dispositivos_normalizado.update({i.nome:None})
+        Dic_numero_reqs_por_conteudo_por_no.update({i.nome:{'k1':0,'k2':0,'k3':0,'k4':0,'k5':0}})
+        Dic_numero_escolhas_nos_por_conteudo.update({i.nome:{'k1':0,'k2':0,'k3':0,'k4':0,'k5':0}})
         Dic_tempo_ultima_atualizacao_por_conteudo_por_no.update({i.nome:{'k1':None,'k2':None,'k3':None,'k4':None,'k5':None}})
         Dic_valores_coletados_por_conteudo_por_no.update({i.nome:{'k1':None,'k2':None,'k3':None,'k4':None,'k5':None}})
         Dic_selecionado_primeiro.update({i.nome:0})
         Dic_selecionado_segundo.update({i.nome:0})
         Dic_selecionado_terceiro.update({i.nome:0})
         Dic_falhas_por_dispositivos.update({i.nome:0})
+        Dic_falhas_por_dispositivos_normalizado.update({i.nome:0})
         List_cache_hits = [0,0]
+
+
+    numero_escolhas_nos_por_conteudo = {i.nome:0 for i in dispositivos}
 
     # Pontos da AoI cobertos por cada sensor
     Dict_cobertura_AoI_k1 = {}
@@ -107,7 +120,6 @@ while rodada < numero_rodadas:
     Dict_cobertura_AoI_k3 = {}
     Dict_cobertura_AoI_k4 = {}
     Dict_cobertura_AoI_k5 = {}
-
 
     for i in dispositivos:
       if i.nome != 'GW':
@@ -214,7 +226,11 @@ while rodada < numero_rodadas:
     pontos_restantes_k5 = Universo_set_cover_problem - Conjunto_pontos_cobertos_k5
 
     # Execução do processo de coleta
-    Dic_registro_energia_remanescente_dispositivos, Contador_envio_MA, Resultados_RMSD_respostas_clientes, List_cache_hits, Media_qtde_nos_fontes = executar_coleta_em_dispositivos_ativos_com_MA.coleta_de_dados(Pontos_cobertos_k1, Pontos_cobertos_k2, Pontos_cobertos_k3, Pontos_cobertos_k4, Pontos_cobertos_k5, pontos_restantes_k1, pontos_restantes_k2, pontos_restantes_k3, pontos_restantes_k4, pontos_restantes_k5, Conjunto_pontos_cobertos_k1, Conjunto_pontos_cobertos_k2, Conjunto_pontos_cobertos_k3, Conjunto_pontos_cobertos_k4, Conjunto_pontos_cobertos_k5, Universo_set_cover_problem, Dict_cobertura_AoI_k1, Dict_cobertura_AoI_k2, Dict_cobertura_AoI_k3, Dict_cobertura_AoI_k4, Dict_cobertura_AoI_k5, Dic_dispositivo_visitado_por_MA, Dic_sensing_ranges, Lista_pontos, plt, dispositivos, Dic_reqs_dispositivos, Dispositivos_selecionados_por_conteudo, Dic_registro_energia_remanescente_dispositivos, contador_reqs_conteudos, Dic_pop_conteudo, G, Dic_registro_custos_originais, Dic_energia_media_consumida_por_conjunto_de_sensing_nodes_k1, Dic_energia_media_consumida_por_conjunto_de_sensing_nodes_k2, Dic_energia_media_consumida_por_conjunto_de_sensing_nodes_k3, Dic_energia_media_consumida_por_conjunto_de_sensing_nodes_k4, Dic_energia_media_consumida_por_conjunto_de_sensing_nodes_k5, Dic_falhas_por_dispositivos, Lista_conteudos, Dic_tempo_ultima_atualizacao_por_conteudo_por_no,tempo_validade_c,tipo_distribuicao, Dic_valores_coletados_por_conteudo_por_no, List_cache_hits, Media_qtde_nos_fontes, tamanho_inicial_do_MA, modo_debug, coord_gateway_x, coord_gateway_y)
+    Resultados_RMSD_respostas_clientes, Dic_registro_energia_remanescente_dispositivos, Contador_envio_MA, List_cache_hits, Lista_media_nos_intermediarios, Media_qtde_nos_fontes = executar_coleta_em_dispositivos_ativos_com_MA.coleta_de_dados(Pontos_cobertos_k1, Pontos_cobertos_k2, Pontos_cobertos_k3, Pontos_cobertos_k4, Pontos_cobertos_k5, pontos_restantes_k1, pontos_restantes_k2, pontos_restantes_k3, pontos_restantes_k4, pontos_restantes_k5, Conjunto_pontos_cobertos_k1, Conjunto_pontos_cobertos_k2, Conjunto_pontos_cobertos_k3, Conjunto_pontos_cobertos_k4, Conjunto_pontos_cobertos_k5, Universo_set_cover_problem, Dict_cobertura_AoI_k1, Dict_cobertura_AoI_k2, Dict_cobertura_AoI_k3, Dict_cobertura_AoI_k4, Dict_cobertura_AoI_k5, Dic_dispositivo_visitado_por_MA, Dic_falhas_por_dispositivos_normalizado, Dic_sensing_ranges, Lista_pontos, plt, dispositivos, Dic_reqs_dispositivos, Dispositivos_selecionados_por_conteudo, Dic_registro_energia_remanescente_dispositivos, Dic_numero_reqs_por_conteudo_por_no,contador_reqs_conteudos, Dic_pop_conteudo, G, Dic_registro_custos_originais, Dic_energia_media_consumida_por_conjunto_de_sensing_nodes_k1, Dic_energia_media_consumida_por_conjunto_de_sensing_nodes_k2, Dic_energia_media_consumida_por_conjunto_de_sensing_nodes_k3, Dic_energia_media_consumida_por_conjunto_de_sensing_nodes_k4, Dic_energia_media_consumida_por_conjunto_de_sensing_nodes_k5, Dic_falhas_por_dispositivos, Lista_conteudos, Dic_tempo_ultima_atualizacao_por_conteudo_por_no,tempo_validade_c,tipo_distribuicao, Dic_valores_coletados_por_conteudo_por_no, List_cache_hits, Lista_media_nos_intermediarios, Media_qtde_nos_fontes, tamanho_inicial_do_MA, modo_debug, coord_gateway_x, coord_gateway_y)
+
+    # Calculo media_nos_intermediarios
+
+    Media_qtde_nos_intermediarios = media(Lista_media_nos_intermediarios)
 
     # Calculo media_nos_fontes
 
@@ -233,7 +249,7 @@ while rodada < numero_rodadas:
 
     Media_RMSD = media(Resultados_RMSD_respostas_clientes)
 
-    # Registro dos resultados do processo de coleta corrente
+    # Registro dos resultados do processo de coleta correntessssssss
 
     g = open('temp_armazenamento_media_nos_fontes.txt','a')
     g.write(str(Media_qtde_nos_fontes_1)+'\n')
@@ -257,6 +273,8 @@ while rodada < numero_rodadas:
 
     rodada += 1
 
+# Lendo os arquivos temporarios
+
 h = open('temp_armazenamento_media_nos_fontes.txt')
 wtMatrix = h.readlines()
 planilha_final_qtde_nos_fontes = []
@@ -269,7 +287,7 @@ planilha_final_cache_hits = []
 for i in wtMatrix:
     planilha_final_cache_hits.append(float(i.split('\n')[0]))
 
-h = open('temp_armazenamento_media_RMSD.txt')
+h = open('temp_armazenamento_Media_RMSD.txt')
 wtMatrix = h.readlines()
 planilha_final_Media_RMSD = []
 for i in wtMatrix:
@@ -287,18 +305,21 @@ planilha_final_contador_envio = []
 for i in wtMatrix:
     planilha_final_contador_envio.append(float(i.split('\n')[0]))
 
-f = open('Resultados_Media_energia_rede_tradicional_ndispositivos_'+str(n)+'t_distribuicao_'+str(tipo_distribuicao)+'t_validade_'+str(tempo_validade_c)+'prob_falha'+str(prob_falha_links)+'_teste_1.txt','w')
+f = open('Resultados_Media_energia_rede_proposta_ndispositivos_'+str(n)+'t_distribuicao_'+str(tipo_distribuicao)+'t_validade_'+str(tempo_validade_c)+'prob_falha'+str(prob_falha_links)+'_teste_1.txt','w')
 f.write(str(planilha_final_media_energia))
 f.close()
-f = open('Resultados_contador_tradicional_ndispositivos_'+str(n)+'t_distribuicao_'+str(tipo_distribuicao)+'t_validade_'+str(tempo_validade_c)+'prob_falha'+str(prob_falha_links)+'_teste_1.txt','w')
+f = open('Resultados_contador_proposta_ndispositivos_'+str(n)+'t_distribuicao_'+str(tipo_distribuicao)+'t_validade_'+str(tempo_validade_c)+'prob_falha'+str(prob_falha_links)+'_teste_1.txt','w')
 f.write(str(planilha_final_contador_envio))
 f.close()
-f = open('Resultados_RMSD_respostas_clientes_tradicional_'+str(n)+'t_distribuicao_'+str(tipo_distribuicao)+'t_validade_'+str(tempo_validade_c)+'prob_falha'+str(prob_falha_links)+'_teste_1.txt','w')
+f = open('Resultados_RMSD_respostas_clientes_proposta_'+str(n)+'t_distribuicao_'+str(tipo_distribuicao)+'t_validade_'+str(tempo_validade_c)+'prob_falha'+str(prob_falha_links)+'_teste_1.txt','w')
 f.write(str(planilha_final_Media_RMSD))
 f.close()
-f = open('Resultados_cache_hits_tradicional_'+str(n)+'t_distribuicao_'+str(tipo_distribuicao)+'t_validade_'+str(tempo_validade_c)+'prob_falha'+str(prob_falha_links)+'_teste_1.txt','w')
+f = open('Resultados_cache_hits_proposta_'+str(n)+'t_distribuicao_'+str(tipo_distribuicao)+'t_validade_'+str(tempo_validade_c)+'prob_falha'+str(prob_falha_links)+'_teste_1.txt','w')
 f.write(str(planilha_final_cache_hits))
 f.close()
-f = open('Resultados_qtde_nos_fontes_tradicional_'+str(n)+'t_distribuicao_'+str(tipo_distribuicao)+'t_validade_'+str(tempo_validade_c)+'prob_falha'+str(prob_falha_links)+'_teste_1.txt','w')
+f = open('Resultados_qtde_nos_intermediarios_proposta_'+str(n)+'t_distribuicao_'+str(tipo_distribuicao)+'t_validade_'+str(tempo_validade_c)+'prob_falha'+str(prob_falha_links)+'_teste_1.txt','w')
+f.write(str(planilha_final_qtde_nos_intermediarios))
+f.close()
+f = open('Resultados_qtde_nos_fontes_proposta_'+str(n)+'t_distribuicao_'+str(tipo_distribuicao)+'t_validade_'+str(tempo_validade_c)+'prob_falha'+str(prob_falha_links)+'_teste_1.txt','w')
 f.write(str(planilha_final_qtde_nos_fontes))
 f.close()

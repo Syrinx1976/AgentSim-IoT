@@ -83,7 +83,7 @@ class pontos:
         self.coordenadas_pontos = coordenadas_pontos
 
 # Módulo que gera as instâncias dos dispositivo
-def gera_aoi_dispositivos(plt, largura, comprimento, n, m, prob_falha_links, modo_debug):
+def gera_aoi_dispositivos(plt, largura, comprimento, n, m, prob_falha_links):
 
     Lista_dispositivos = [j for j in range(0,n,1)]
     Dispositivos = []
@@ -112,8 +112,7 @@ def gera_aoi_dispositivos(plt, largura, comprimento, n, m, prob_falha_links, mod
                 nome.valor_conteudo_4 = Dic_valores_conteudos_dispositivos[dispositivo][3]
                 nome.valor_conteudo_5 = Dic_valores_conteudos_dispositivos[dispositivo][4]
 
-
-    Dic_coordenadas_dispositivos, G, Dic_registro_custos_originais = gerar_grafo_bidirecional_coordenadas.gera_grafo(n,m,plt,Dic_coordenadas_dispositivos,largura,comprimento,Dispositivos,prob_falha_links,modo_debug)
+    Dic_coordenadas_dispositivos, G, Dic_registro_custos_originais = gerar_grafo_bidirecional_coordenadas.gera_grafo(n,m,plt,Dic_coordenadas_dispositivos,largura,comprimento,Dispositivos,prob_falha_links)
 
     # Criação da AoI: Uma Matriz com pontos equidistantes
     First_point = (0,0)
@@ -140,6 +139,7 @@ def gera_aoi_dispositivos(plt, largura, comprimento, n, m, prob_falha_links, mod
         ponto.criar_pontos(nome,coordenadas_pontos[index])
         index += 1
         Lista_pontos.append(ponto)
+
 
     Lista_dispositivos = []
 
